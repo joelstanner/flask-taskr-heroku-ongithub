@@ -22,7 +22,7 @@ if not app.debug:
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
     app.logger.info('errors')
-    print "Debugging!!!!!!!!!!"
+    print "NOT Debugging!!!!!!!!!!"
 
 from app import views, models
 from app.users.views import mod as usersMod
