@@ -2,8 +2,10 @@
 
 
 from app import app, db
-from flask import flash, redirect, render_template, session, url_for
+from flask import (flash, redirect, render_template, session, url_for,
+                   request, jsonify)
 from functools import wraps
+from app.models import FTasks
 
 def flash_errors(form):
     for field, errors in form.errors.items():
@@ -32,11 +34,46 @@ def internal_error(error):
 def internal_error(error):
     return render_template('404.html'), 404
     
-@app.errorhandler(402)
+@app.errorhandler(403)
 def internal_error(error):
-    return render_template('403.html'), 404
+    return render_template('403.html'), 403
 
 @app.route('/', defaults={'page': 'index'})
 def index(page):
     return (redirect(url_for('users.login')))
 
+
+# ------ API ----- #
+@app.route('/api/tasks/', methods=['GET'])
+def tasks():
+    if request.method == 'GET':
+        results = db.session.query(FTasks).limit(10).offset(0).all()
+        json_results = []
+        for result in results:
+            data = {
+                'task_id': result.task_id,
+                'task name': result.name,
+                'due date': str(result.due_date),
+                'priority': result.priority,
+                'posted date': str(result.posted_date),
+                'status': result.status,
+                'user id': result.user_id
+                }
+            json_results.append(data)
+        return jsonify(items=json_results)
+    
+@app.route('/api/task/<int:task_id>')
+def task(task_id):
+    if request.method == 'GET':
+        result = db.session.query(FTasks).filter_by(task_id=task_id).first()
+
+        json_result = {
+            'task_id': result.task_id,
+            'task name': result.name,
+            'due date': str(result.due_date),
+            'priority': result.priority,
+            'posted date': str(result.posted_date),
+            'status': result.status,
+            'user id': result.user_id
+            }
+    return jsonify(items=json_result)
