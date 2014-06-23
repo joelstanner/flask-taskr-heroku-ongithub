@@ -1,9 +1,14 @@
-from fabric.api import local
+from fabric.api import local, settings, abort
+from fabric.contrib.console import confirm
 
 #prepare for deployment
 
 def test():
-    local("python test_tasks.py -v && python test_users.py -v")
+    with settings(warn_only=True):
+        result = local("python test_tasks.py -v && python test_users.py -v",
+                       capture=True)
+        if result.failed and not confirm("Test failed. Continue?"):
+            abort("Aborted at user request.")
     
 def commit():
     message = raw_input("Enter a git commit message:  ")
@@ -17,6 +22,21 @@ def prepare():
     commit()
     push()
 
-
+def pull():
+    local("git pull heroku master")
     
+def heroku():
+    local("git push heroku master")
+    
+def heroku_test():
+    local("heroku run python test_tasks.py -v && heroku run python test_users.py -v")
+    
+def deploy():
+    pull()
+    test()
+    commit()
+    heroku()
+    heroku_test()
 
+def rollback():
+    local("heroku rollback")
