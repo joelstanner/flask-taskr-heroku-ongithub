@@ -15,15 +15,17 @@ def commit():
     local("git add . && git commit -am '{}'".format(message))
     
 def push():
-    local("git push heroku master")
+    local("git push origin master")
     
 def prepare():
     test()
     commit()
     push()
 
+# deploying
+
 def pull():
-    local("git pull heroku master")
+    local("git pull origin master")
     
 def heroku():
     local("git push heroku master")
